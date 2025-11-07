@@ -11,6 +11,7 @@ chat(
   stream = FALSE,
   format = list(),
   keep_alive = "5m",
+  timeout = options()$timeout,
   output = c("resp", "jsonlist", "raw", "df", "text", "req", "tools", "structured"),
   endpoint = "/api/chat",
   host = NULL,
@@ -29,6 +30,9 @@ chat(
 \item{format}{Format to return a response in. Format can be json/list (structured response).}
 
 \item{keep_alive}{The duration to keep the connection alive. Default is "5m".}
+
+\item{timeout}{The POST request timeout, in seconds.  Defaults to 'options()$timeout'.
+A multiple-message task can take long time on a slow computer or with a large model.}
 
 \item{output}{The output format. Default is "resp". Other options are "jsonlist", "raw", "df", "text", "req" (httr2_request object), "tools" (tool calling), "structured" (structured output)}
 
@@ -50,6 +54,7 @@ Generate a chat completion with message history
 messages <- list(
     list(role = "user", content = "How are you doing?")
 )
+otimeout <- options(timeout = 300)  # longer timeout for all following examples
 chat("llama3", messages) # returns response by default
 chat("llama3", messages, output = "text") # returns text/vector
 chat("llama3", messages, temperature = 2.8) # additional options
@@ -71,7 +76,8 @@ image_path <- file.path(system.file("extdata", package = "ollamar"), "image1.png
 messages <- list(
     list(role = "user", content = "What is in the image?", images = image_path)
 )
-chat("benzie/llava-phi-3", messages, output = "text")
+chat("benzie/llava-phi-3", messages, output = "text", timeout = 600)
+options(otimeout)  # restore the original timeout
 \dontshow{\}) # examplesIf}
 }
 \references{

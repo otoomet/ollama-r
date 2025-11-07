@@ -16,6 +16,7 @@ generate(
   stream = FALSE,
   raw = FALSE,
   keep_alive = "5m",
+  timeout = options()$timeout,
   output = c("resp", "jsonlist", "raw", "df", "text", "req", "structured"),
   endpoint = "/api/generate",
   host = NULL,
@@ -44,6 +45,9 @@ generate(
 \item{raw}{If TRUE, no formatting will be applied to the prompt. You may choose to use the raw parameter if you are specifying a full templated prompt in your request to the API. Default is FALSE.}
 
 \item{keep_alive}{The time to keep the connection alive. Default is "5m" (5 minutes).}
+
+\item{timeout}{The POST request timeout, in seconds.  Defaults to 'options()$timeout'.  A complex task can easily
+take hours on slower computers.}
 
 \item{output}{A character vector of the output format. Default is "resp". Options are "resp", "jsonlist", "raw", "df", "text", "req" (httr2_request object).}
 

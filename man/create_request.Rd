@@ -4,12 +4,14 @@
 \alias{create_request}
 \title{Create a httr2 request object}
 \usage{
-create_request(endpoint, host = NULL)
+create_request(endpoint, host = NULL, timeout = options()$timeout)
 }
 \arguments{
 \item{endpoint}{The endpoint to create the request}
 
 \item{host}{The base URL to use. Default is NULL, which uses http://127.0.0.1:11434}
+
+\item{timeout}{The httr2 request timeout, in seconds.  Defaults to 'options()$timeout)'.}
 }
 \value{
 A httr2 request object.
@@ -20,5 +22,5 @@ Creates a httr2 request object with base URL, headers and endpoint. Used by othe
 \examples{
 create_request("/api/tags")
 create_request("/api/chat")
-create_request("/api/embeddings")
+create_request("/api/embeddings", timeout = 20)
 }

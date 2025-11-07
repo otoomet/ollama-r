@@ -16,6 +16,7 @@ package_config <- list(
 #'
 #' @param endpoint The endpoint to create the request
 #' @param host The base URL to use. Default is NULL, which uses http://127.0.0.1:11434
+#' @param timeout The httr2 request timeout, in seconds.  Defaults to 'options()$timeout)'.
 #'
 #' @return A httr2 request object.
 #' @export
@@ -23,8 +24,9 @@ package_config <- list(
 #' @examples
 #' create_request("/api/tags")
 #' create_request("/api/chat")
-#' create_request("/api/embeddings")
-create_request <- function(endpoint, host = NULL) {
+#' create_request("/api/embeddings", timeout = 20)
+create_request <- function(endpoint, host = NULL,
+                           timeout = options()$timeout) {
     if (is.null(host)) {
         url <- package_config$baseurls[1] # use default base URL
     } else {
@@ -38,11 +40,10 @@ create_request <- function(endpoint, host = NULL) {
         accept = "application/json",
         user_agent = package_config$user_agent
     )
-    req <- httr2::req_headers(req, !!!headers)
+    req <- httr2::req_headers(req, !!!headers) |>
+       httr2::req_options(timeout_ms = timeout*1000)
     return(req)
 }
-
-
 
 
 
@@ -65,6 +66,8 @@ create_request <- function(endpoint, host = NULL) {
 #' @param stream Enable response streaming. Default is FALSE.
 #' @param raw If TRUE, no formatting will be applied to the prompt. You may choose to use the raw parameter if you are specifying a full templated prompt in your request to the API. Default is FALSE.
 #' @param keep_alive The time to keep the connection alive. Default is "5m" (5 minutes).
+#' @param timeout The POST request timeout, in seconds.  Defaults to 'options()$timeout'.  A complex task can easily
+#'   take hours on slower computers.
 #' @param output A character vector of the output format. Default is "resp". Options are "resp", "jsonlist", "raw", "df", "text", "req" (httr2_request object).
 #' @param endpoint The endpoint to generate the completion. Default is "/api/generate".
 #' @param host The base URL to use. Default is NULL, which uses Ollama's default base URL.
@@ -87,13 +90,18 @@ create_request <- function(endpoint, host = NULL) {
 #' image_path <- file.path(system.file("extdata", package = "ollamar"), "image1.png")
 #' # use vision or multimodal model such as https://ollama.com/benzie/llava-phi-3
 #' generate("benzie/llava-phi-3:latest", "What is in the image?", images = image_path, output = "text")
-generate <- function(model, prompt, suffix = "", images = "", format = list(), system = "", template = "", context = list(), stream = FALSE, raw = FALSE, keep_alive = "5m", output = c("resp", "jsonlist", "raw", "df", "text", "req", "structured"), endpoint = "/api/generate", host = NULL, ...) {
+generate <- function(model, prompt, suffix = "", images = "", format = list(), system = "",
+                     template = "", context = list(), stream = FALSE, raw = FALSE,
+                     keep_alive = "5m",
+                     timeout = options()$timeout,
+                     output = c("resp", "jsonlist", "raw", "df", "text", "req", "structured"),
+                     endpoint = "/api/generate", host = NULL,
+                     ...) {
     output <- output[1]
     if (!output %in% c("df", "resp", "jsonlist", "raw", "text", "req", "structured")) {
         stop("Invalid output format specified. Supported formats: 'df', 'resp', 'jsonlist', 'raw', 'text', 'req', 'structured'")
     }
-
-    req <- create_request(endpoint, host)
+    req <- create_request(endpoint, host, timeout = timeout)
     req <- httr2::req_method(req, "POST")
 
     images_list <- list()
@@ -177,6 +185,8 @@ generate <- function(model, prompt, suffix = "", images = "", format = list(), s
 #' @param stream Enable response streaming. Default is FALSE.
 #' @param format Format to return a response in. Format can be json/list (structured response).
 #' @param keep_alive The duration to keep the connection alive. Default is "5m".
+#' @param timeout The POST request timeout, in seconds.  Defaults to 'options()$timeout'.
+#'   A multiple-message task can take long time on a slow computer or with a large model.
 #' @param output The output format. Default is "resp". Other options are "jsonlist", "raw", "df", "text", "req" (httr2_request object), "tools" (tool calling), "structured" (structured output)
 #' @param endpoint The endpoint to chat with the model. Default is "/api/chat".
 #' @param host The base URL to use. Default is NULL, which uses Ollama's default base URL.
@@ -193,6 +203,7 @@ generate <- function(model, prompt, suffix = "", images = "", format = list(), s
 #' messages <- list(
 #'     list(role = "user", content = "How are you doing?")
 #' )
+#' otimeout <- options(timeout = 300)  # longer timeout for all following examples
 #' chat("llama3", messages) # returns response by default
 #' chat("llama3", messages, output = "text") # returns text/vector
 #' chat("llama3", messages, temperature = 2.8) # additional options
@@ -214,14 +225,18 @@ generate <- function(model, prompt, suffix = "", images = "", format = list(), s
 #' messages <- list(
 #'     list(role = "user", content = "What is in the image?", images = image_path)
 #' )
-#' chat("benzie/llava-phi-3", messages, output = "text")
-chat <- function(model, messages, tools = list(), stream = FALSE, format = list(), keep_alive = "5m", output = c("resp", "jsonlist", "raw", "df", "text", "req", "tools", "structured"), endpoint = "/api/chat", host = NULL, ...) {
+#' chat("benzie/llava-phi-3", messages, output = "text", timeout = 600)
+#' options(otimeout)  # restore the original timeout
+chat <- function(model, messages, tools = list(), stream = FALSE, format = list(),
+                 keep_alive = "5m",
+                 timeout = options()$timeout,
+                 output = c("resp", "jsonlist", "raw", "df", "text", "req", "tools", "structured"), endpoint = "/api/chat", host = NULL, ...) {
     output <- output[1]
     if (!output %in% c("df", "resp", "jsonlist", "raw", "text", "req", "tools", "structured")) {
         stop("Invalid output format specified. Supported formats: 'df', 'resp', 'jsonlist', 'raw', 'text', 'tools', 'structured'")
     }
 
-    req <- create_request(endpoint, host)
+    req <- create_request(endpoint, host, timeout)
     req <- httr2::req_method(req, "POST")
 
     if (!validate_messages(messages)) {
@@ -312,7 +327,8 @@ chat <- function(model, messages, tools = list(), stream = FALSE, format = list(
 #' create("mario", "deepseek-r1:1.5b", system = "You are Mario from Super Mario Bros.")
 #' model_avail("mario") # check mario model has been created
 #' list_models() # mario model has been created
-#' generate("mario", "who are you?", output = "text") # model should say it's Mario
+#' generate("mario", "who are you?", output = "text",
+#'           timeout = 300)  # model should say it's Mario
 #' delete("mario") # delete the model created above
 #' model_avail("mario") # model no longer exists
 create <- function(model, from, system = NULL, stream = FALSE, endpoint = "/api/create", host = NULL) {
