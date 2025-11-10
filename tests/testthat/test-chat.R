@@ -8,6 +8,8 @@ test_that("chat function works with basic input", {
         list(role = "user", content = "Tell me a 5-word story.")
     )
 
+    ooptions <- options(timeout = 600)  # set it for all calls
+
     # incorrect output type
     expect_error(chat("llama3", messages, output = "abc"))
 
@@ -53,6 +55,8 @@ test_that("chat function works with basic input", {
     expect_true(all(c("model", "role", "content", "created_at") %in% names(result)))
     expect_equal(result$model[1], "llama3")
     expect_equal(result$role[1], "assistant")
+
+    options(ooptions)
 })
 
 test_that("chat function handles streaming correctly", {
@@ -105,6 +109,8 @@ test_that("chat function handles images in messages", {
     skip_if_not(test_connection(logical = TRUE), "Ollama server not available")
     skip_if_not(model_avail("benzie/llava-phi-3"), "benzie/llava-phi-3 model not available")
 
+    ooptions <- options(timeout = 600)
+    
     images <- c(file.path(system.file("extdata", package = "ollamar"), "image1.png"),
                 file.path(system.file("extdata", package = "ollamar"), "image2.png"))
 
@@ -128,12 +134,15 @@ test_that("chat function handles images in messages", {
     expect_type(result, "character")
     # expect_true(grepl("melon", tolower(result)) | grepl("cam", tolower(result)))
 
+    options(ooptions)
 })
 
 
 test_that("chat function tool calling", {
     skip_if_not(test_connection(logical = TRUE), "Ollama server not available")
 
+    ooptions <- options(timeout = 600)
+    
     add_two_numbers <- function(x, y) {
         return(x + y)
     }
@@ -234,6 +243,7 @@ test_that("chat function tool calling", {
     # expect_equal(resp[[1]]$name, "add_two_numbers")
     # expect_equal(resp[[2]]$name, "multiply_two_numbers")
 
+    options(ooptions)
 })
 
 
@@ -242,6 +252,8 @@ test_that("chat function tool calling", {
 test_that("structured output", {
     skip_if_not(test_connection(logical = TRUE), "Ollama server not available")
 
+    ooptions <- options(timeout = 600)  # set it for all calls
+    
     format <- list(
         type = "object",
         properties = list(
@@ -266,6 +278,8 @@ test_that("structured output", {
     # content <- httr2::resp_body_json(resp)$message$content
     structured_output <- resp_process(resp, "structured")
     expect_equal(tolower(structured_output$name), "canada")
+
+    options(ooptions)
 
 })
 

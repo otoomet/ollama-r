@@ -33,12 +33,12 @@ A response in the format specified in the output parameter.
 Create a model from another model, a safetensors directory (not implemented), or a GGUF file (not implemented).
 }
 \examples{
-\dontshow{if (test_connection(logical = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (test_connection(logical = TRUE)) withAutoprint(\{ # examplesIf}
 create("mario", "deepseek-r1:1.5b", system = "You are Mario from Super Mario Bros.")
 model_avail("mario") # check mario model has been created
 list_models() # mario model has been created
 generate("mario", "who are you?", output = "text",
-          timeout = 300)  # model should say it's Mario
+          timeout = 600)  # model should say it's Mario
 delete("mario") # delete the model created above
 model_avail("mario") # model no longer exists
 \dontshow{\}) # examplesIf}

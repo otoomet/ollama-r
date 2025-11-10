@@ -18,7 +18,7 @@ A character string of the Ollama version.
 Retrieve Ollama version
 }
 \examples{
-\dontshow{if (test_connection(logical = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (test_connection(logical = TRUE)) withAutoprint(\{ # examplesIf}
 ver()
 \dontshow{\}) # examplesIf}
 }

@@ -41,7 +41,8 @@ create_request <- function(endpoint, host = NULL,
         user_agent = package_config$user_agent
     )
     req <- httr2::req_headers(req, !!!headers) |>
-       httr2::req_options(timeout_ms = timeout*1000)
+       httr2::req_options(timeout_ms = timeout*1000,
+                          low_speed_limit = 0)
     return(req)
 }
 
@@ -80,6 +81,7 @@ create_request <- function(endpoint, host = NULL,
 #' [API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-completion)
 #'
 #' @examplesIf test_connection(logical = TRUE)
+#' ooptions <- options(timeout = 1200)
 #' # text prompt
 #' generate("llama3", "The sky is...", stream = FALSE, output = "df")
 #' # stream and increase temperature
@@ -89,7 +91,9 @@ create_request <- function(endpoint, host = NULL,
 #' # something like "image1.png"
 #' image_path <- file.path(system.file("extdata", package = "ollamar"), "image1.png")
 #' # use vision or multimodal model such as https://ollama.com/benzie/llava-phi-3
-#' generate("benzie/llava-phi-3:latest", "What is in the image?", images = image_path, output = "text")
+#' generate("benzie/llava-phi-3:latest", "What is in the image?", images = image_path,
+#'           output = "text")
+#' options(ooptions)
 generate <- function(model, prompt, suffix = "", images = "", format = list(), system = "",
                      template = "", context = list(), stream = FALSE, raw = FALSE,
                      keep_alive = "5m",
@@ -328,7 +332,7 @@ chat <- function(model, messages, tools = list(), stream = FALSE, format = list(
 #' model_avail("mario") # check mario model has been created
 #' list_models() # mario model has been created
 #' generate("mario", "who are you?", output = "text",
-#'           timeout = 300)  # model should say it's Mario
+#'           timeout = 600)  # model should say it's Mario
 #' delete("mario") # delete the model created above
 #' model_avail("mario") # model no longer exists
 create <- function(model, from, system = NULL, stream = FALSE, endpoint = "/api/create", host = NULL) {

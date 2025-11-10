@@ -64,7 +64,8 @@ A response in the format specified in the output parameter.
 Generate a response for a given prompt
 }
 \examples{
-\dontshow{if (test_connection(logical = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (test_connection(logical = TRUE)) withAutoprint(\{ # examplesIf}
+ooptions <- options(timeout = 1200)
 # text prompt
 generate("llama3", "The sky is...", stream = FALSE, output = "df")
 # stream and increase temperature
@@ -74,7 +75,9 @@ generate("llama3", "The sky is...", stream = TRUE, output = "text", temperature 
 # something like "image1.png"
 image_path <- file.path(system.file("extdata", package = "ollamar"), "image1.png")
 # use vision or multimodal model such as https://ollama.com/benzie/llava-phi-3
-generate("benzie/llava-phi-3:latest", "What is in the image?", images = image_path, output = "text")
+generate("benzie/llava-phi-3:latest", "What is in the image?", images = image_path,
+          output = "text")
+options(ooptions)
 \dontshow{\}) # examplesIf}
 }
 \references{

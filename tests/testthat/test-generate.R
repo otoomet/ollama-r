@@ -4,10 +4,13 @@ library(ollamar)
 test_that("generate function works with different outputs and resp_process", {
     skip_if_not(test_connection(logical = TRUE), "Ollama server not available")
 
+    ooptions <- options(timeout = 600)
+    
     # incorrect output type
     expect_error(generate("llama3", "The sky is...", output = "abc"))
 
-    expect_s3_class(generate("llama3.1", "tell me a 5-word story", output = "req"), "httr2_request")
+    expect_s3_class(generate("llama3.1", "tell me a 5-word story",
+                             output = "req", timeout = 600), "httr2_request")
 
     # not streaming
     expect_s3_class(generate("llama3", "The sky is..."), "httr2_response")
@@ -43,6 +46,8 @@ test_that("generate function works with different outputs and resp_process", {
     expect_type(resp_process(result, "jsonlist"), "list")
     expect_type(resp_process(result, "text"), "character")
     expect_type(resp_process(result, "raw"), "character")
+
+    options(ooptions)
 })
 
 test_that("generate function works with additional options", {
@@ -60,7 +65,8 @@ test_that("generate function works with images", {
 
     image_path <- file.path(system.file("extdata", package = "ollamar"), "image1.png")
 
-    result <- generate("benzie/llava-phi-3", "What is in the image?", images = image_path)
+    result <- generate("benzie/llava-phi-3", "What is in the image?", images = image_path,
+                       timeout = 600)
     expect_s3_class(result, "httr2_response")
     expect_type(resp_process(result, "text"), "character")
     expect_match(tolower(resp_process(result, "text")), "watermelon")
@@ -72,7 +78,8 @@ test_that("generate function works with images", {
 
     # multiple images
     result <- generate("benzie/llava-phi-3", "What objects are in the two images?",
-                       images = images, output = 'text')
+                       images = images, output = 'text',
+                       timeout = 600)
     expect_type(result, "character")
     expect_true(grepl("melon", tolower(result)) | grepl("cam", tolower(result)))
 
@@ -105,7 +112,8 @@ test_that("structured output", {
     )
 
     msg <- "tell me about canada"
-    resp <- generate("llama3.1:8b", prompt = msg, format = format)
+    resp <- generate("llama3.1:8b", prompt = msg, format = format,
+                     timeout = 600)
     # response <- httr2::resp_body_json(resp)$response
     structured_output <- resp_process(resp, "structured")
     expect_equal(tolower(structured_output$name), "canada")

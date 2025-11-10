@@ -49,7 +49,7 @@ A response in the format specified in the output parameter.
 Generate a chat completion with message history
 }
 \examples{
-\dontshow{if (test_connection(logical = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (test_connection(logical = TRUE)) withAutoprint(\{ # examplesIf}
 # one message
 messages <- list(
     list(role = "user", content = "How are you doing?")

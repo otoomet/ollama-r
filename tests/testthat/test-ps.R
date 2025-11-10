@@ -5,7 +5,7 @@ test_that("ps list running models endpoint", {
     skip_if_not(test_connection(logical = TRUE), "Ollama server not available")
 
     # load models first
-    g1 <- generate('llama3', "tell me a 5 word story")
+    g1 <- generate('llama3', "tell me a 5 word story", timeout = 600)
 
     result <- ps()
     expect_true(nrow(result) >= 1)
